@@ -86,12 +86,12 @@ public class SPL extends Problem {
 		    
 		        List<Individual> indivs = new ArrayList<Individual>();
 		        double totalFitness = 0;
-
+		        
 		        /** Get Objectives **/
 		        Random r = new Random();
-		        for (int i = 1; i <= 100; i++) {
+		        for (int i = 1; i <= 5; i++) {
 		            int size = r.nextInt(maxIndSize - 1) + minProds;
-		            List<IVecInt> prods = getDissimilarConfigs(size, file_cost);
+		            List<IVecInt> prods = getDissimilarConfigs(size, file_FM);
 		            Individual indiv = new Individual(prods);
 		            evaluateFitness(indiv, solution);
 		        }
@@ -119,7 +119,7 @@ public class SPL extends Problem {
 
 	        ISolver dimacsSolver = SolverFactory.instance().createSolverByName("MiniSAT");
 	        DimacsReader dr = new DimacsReader(dimacsSolver);
-	        dr.parseInstance(new FileReader(dimacsFM));
+	        dr.parseInstance(dimacsFM);
 	        Solver solver = (Solver) dimacsSolver;
 	        solver.setTimeout(1000);
 	        solver.setOrder(new RandomWalkDecorator(new VarOrderHeap(new RandomLiteralSelectionStrategy()), 1));
@@ -200,6 +200,8 @@ public class SPL extends Problem {
 	        double maxCost = maxProductCost * n;
 
 	        o3 = (double) cost / maxCost;
+	        
+	        System.out.println("o1: " + o1 + "  o2: " + o2 + "  o3: " + o3);
 	        
 		    /** Set Objectives **/
 		    solution.setObjective(0,o1);
