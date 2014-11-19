@@ -1,7 +1,9 @@
 package jmetal.problems;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -203,6 +205,12 @@ public class SPL extends Problem {
 	        
 	        System.out.println("o1: " + o1 + "  o2: " + o2 + "  o3: " + o3);
 	        
+	        try {
+				writeProds("solutions", indiv);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+	        
 		    /** Set Objectives **/
 		    solution.setObjective(0,o1);
 		    solution.setObjective(1,o2);
@@ -222,5 +230,18 @@ public class SPL extends Problem {
 	            }
 	        }
 	        return cost;
+	    }
+	    
+	    public void writeProds(String file, Individual i) throws Exception {
+	        BufferedWriter out = new BufferedWriter(new FileWriter(file));
+
+	        for (IVecInt v : i.getProds()) {
+	            for (int j = 0; j < v.size(); j++) {
+	                out.write(v.get(j) + " ");
+
+	            }
+	            out.newLine();
+	        }
+	        out.close();
 	    }
 }
