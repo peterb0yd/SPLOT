@@ -149,9 +149,6 @@ public class SPL extends Problem {
 	} // evaluate
 	
 	/** This function checks a list of products for duplicates
-	 * 		- It should never find duplicates considering products
-	 * 			are created using 3SAT DIMACS solver
-	 * 
 	 * @param products - list of all products
 	 * @throws IOException
 	 */
