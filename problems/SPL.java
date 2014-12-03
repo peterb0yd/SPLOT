@@ -5,8 +5,10 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -35,213 +37,107 @@ import jmetal.util.JMException;
 
 public class SPL extends Problem {
 	
-	HashMap<Integer, Integer> costs;
-	private int maxProductCost = 0;
-	private int minProds = 1;
-	private int maxIndSize = 100;
-	private double maxPairs;
 	private String file_FM;
 	private String file_cost;
-	double o1 = 0;
-	double o2 = 0;
-	double o3 = 0;
+	
+	private int[][] products = new int[1000][24];
+	private List <int[]> productLine = new LinkedList <int[]> ();
 
-	public SPL(String solutionType,
-				String file_FM,
-				String file_cost) {
+	public SPL(String file_FM) {
 		this.file_FM = file_FM;
-		this.file_cost = file_cost;
-		numberOfVariables_ = 2;
-		numberOfObjectives_ = 3;
-		numberOfConstraints_ = 0;
-		problemName_ = "SPL";
-		upperLimit_ = new double[numberOfVariables_];
-		lowerLimit_ = new double[numberOfVariables_];
+//		this.file_cost = file_cost;
+		numberOfObjectives_ = 2;
+		numberOfVariables_ = 10;						// Change this for testing
+	    lowerLimit_ = new double[numberOfVariables_];
+	    upperLimit_ = new double[numberOfVariables_]; 
+	    for (int var = 0; var < numberOfVariables_; var++){
+	        lowerLimit_[var] = 0.0;
+	        upperLimit_[var] = 2000.0;
+	     } //for
 		
-		try {
-			costs = loadCost(file_cost);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		maxPairs = 50;
-        maxProductCost = 0;
-        for (Integer i : costs.keySet()) {
-            maxProductCost += costs.get(i);
-        }
 	      
-		if(solutionType.compareTo("Permutation")==0)
-			solutionType_ = new PermutationSolutionType(this);
-		else if (solutionType.compareTo("BinaryReal") == 0)
-	    	solutionType_ = new BinaryRealSolutionType(this) ;
-	    else if (solutionType.compareTo("Real") == 0)
-	    	solutionType_ = new RealSolutionType(this) ;
-	    else {
-	    	System.out.println("Error: solution type " + solutionType + " invalid") ;
-	    	System.exit(-1) ;
-	    }  
+		solutionType_ = new RealSolutionType(this);
+		
 	}
 
 	  public void evaluate(Solution solution) throws JMException {
-		    try {
-		    
-		        List<Individual> indivs = new ArrayList<Individual>();
-		        double totalFitness = 0;
-		        
-		        /** Get Objectives **/
-		        Random r = new Random();
-		        for (int i = 1; i <= 5; i++) {
-		            int size = r.nextInt(maxIndSize - 1) + minProds;
-		            List<IVecInt> prods = getDissimilarConfigs(size, file_FM);
-		            Individual indiv = new Individual(prods);
-		            evaluateFitness(indiv, solution);
-		        }
-		        
-		    } catch (Exception e) {
-		    	System.out.println(e.getMessage());
-		    }
+		  try {
+			  
+			  // Read "solutions" file to obtain products
+			  BufferedReader br = new BufferedReader(new FileReader(file_FM));
+			  String line;
+			  String[] line_string = new String[24];
+			  int line_count = 0;
+			  
+			  // Set each line of file to int array
+			  while ((line = br.readLine()) != null) {
+				 int[] product = new int[24];
+				 line_string = line.toString().replace("," , "").split(" ");
+				 for (int i = 0; i < 24; i++) {
+					 product[i] = Integer.parseInt(line_string[i]);
+				 }
+			     products[line_count] = product;		// add product to product array
+			     line_count++;
+			  }
+			  br.close();
+		  } catch (Exception e) {
+			  e.printStackTrace();
+		  }
+		  
+		  // Add chosen products to product line (list of products)
+		  Variable[] variables  = solution.getDecisionVariables();
+		  int variable_value = 0;
+		  for (int i = 0; i < variables.length; i++) {
+			  if ((int)variables[i].getValue() < 1000) {
+				  variable_value = (int)variables[i].getValue();
+				  productLine.add(products[variable_value]);
+			  }
+		  }
+		  
+		  // Find all features tested in product line
+		  boolean[] featuresUsed = new boolean[24];
+		  for (int i = 0; i < productLine.size(); i++) {
+			  for (int j = 0; j < productLine.get(i).length; j++) {
+				  System.out.println(productLine.get(i)[j]);
+				  if (productLine.get(i)[j] > 0) {
+					  featuresUsed[j] = true;
+					  System.out.println("true");
+				  }
+			  }
+		  }
+		  
+		  
+		  // Count number of features tested
+		  int features_used = 0;			// objective 1
+		  for (int i = 0; i < 24; i++) {
+			  if (featuresUsed[i]) {
+				  features_used++;
+			  }
+		  }
+		  
+		  
+		  /* OBJECTIVE 1:
+		   * We want to maximize features used. We need to convert this 
+		   * to a minimization problem for jMetal. Therefore, we can subtract the features
+		   * used by the total number of features. This gives us the number of features 
+		   * that aren't tested in the product line. We set this value as our first objective.
+		   */
+		  int obj1 = 24 - features_used;	
+		  
+		  
+		  /* OBJECTIVE 2: 
+		   * We want to minimize the number of products tested. This will be equivalent 
+		   * to the size of our product line list. We set this value as our second objective.
+		   */
+		  int obj2 = productLine.size();		
+		  
+		  System.out.println("\nfeatures used: " + obj1 + "\t\tproducts tested: " + obj2);
+		  
+		  solution.setObjective(0, obj1);
+		  solution.setObjective(1, obj2);
+		  
+		  
+		  productLine.clear();
 		       
-		  } // evaluate
-	  
-
-	    public HashMap<Integer, Integer> loadCost(String filename) throws Exception {
-	        BufferedReader in = new BufferedReader(new FileReader(filename));
-	        HashMap<Integer, Integer> costs = new HashMap<Integer, Integer>();
-	        String line;
-	        while ((line = in.readLine()) != null) {
-	            StringTokenizer st = new StringTokenizer(line, ":");
-	            costs.put(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
-	        }
-	        in.close();
-	        return costs;
-	    }
-	    
-	    public List<IVecInt> getDissimilarConfigs(int count, String dimacsFM) throws Exception {
-
-	        ISolver dimacsSolver = SolverFactory.instance().createSolverByName("MiniSAT");
-	        DimacsReader dr = new DimacsReader(dimacsSolver);
-	        dr.parseInstance(dimacsFM);
-	        Solver solver = (Solver) dimacsSolver;
-	        solver.setTimeout(1000);
-	        solver.setOrder(new RandomWalkDecorator(new VarOrderHeap(new RandomLiteralSelectionStrategy()), 1));
-	        ISolver solverIterator = new ModelIterator(solver);
-	        solverIterator.setTimeoutMs(150000);
-
-	        List<IVecInt> products = new ArrayList<IVecInt>(count);
-
-
-	        while (products.size() < count) {
-
-	            try {
-	                if (solverIterator.isSatisfiable()) {
-
-	                    int[] vec = solverIterator.model();
-
-	                    IVecInt vect = toVec(vec);
-
-	                    if (!products.contains(vect)) {
-	                        products.add(vect);
-	                    }
-
-
-	                } else {
-	                    dimacsSolver = SolverFactory.instance().createSolverByName("MiniSAT");
-	                    dr = new DimacsReader(dimacsSolver);
-	                    dr.parseInstance(new FileReader(dimacsFM));
-	                    solver = (Solver) dimacsSolver;
-	                    solver.setTimeout(1000);
-	                    solver.setOrder(new RandomWalkDecorator(new VarOrderHeap(new RandomLiteralSelectionStrategy()), 1));
-
-	                    solverIterator = new ModelIterator(solver);
-	                    solverIterator.setTimeoutMs(150000);
-	                }
-
-	            } catch (Exception e) {
-	                e.printStackTrace();
-	            }
-	        }
-	        return products;
-	    }
-	    
-	    public IVecInt toVec(int[] vec) {
-	        IVecInt vect = new VecInt(vec.length);
-	        for (int i = 0; i < vec.length; i++) {
-	            vect.push(vec[i]);
-
-	        }
-	        return vect;
-	    }
-	    
-	    public void evaluateFitness(Individual indiv, Solution solution) {
-	        List<IVecInt> products = indiv.getProds();
-	        double n = products.size();
-	        Set<TSet> pairs = new HashSet<TSet>();
-	        List<IVecInt> prods = indiv.getProds();
-	        for (IVecInt v : prods) {
-
-	            for (int i = 0; i < v.size(); i++) {
-	                for (int j = 0; j < v.size(); j++) {
-	                    if (j > i) {
-	                        pairs.add(new TSet(new int[]{v.get(i), v.get(j)}));
-	                    }
-
-	                }
-
-	            }
-	        }
-
-	        int nf = products.get(0).size();
-
-	        o1 = (-pairs.size() + maxPairs) / (-(nf * (nf - 1) / 2) + maxPairs);
-
-	        o2 = (n - minProds) / (maxIndSize - minProds);
-	        double cost = getCost(products);
-
-
-	        double maxCost = maxProductCost * n;
-
-	        o3 = (double) cost / maxCost;
-	        
-	        System.out.println("o1: " + o1 + "  o2: " + o2 + "  o3: " + o3);
-	        
-	        try {
-				writeProds("solutions", indiv);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	        
-		    /** Set Objectives **/
-		    solution.setObjective(0,o1);
-		    solution.setObjective(1,o2);
-		    solution.setObjective(2,o3);
-
-	    }
-	    
-	    public int getCost(List<IVecInt> products) {
-	        int cost = 0;
-	        for (IVecInt p : products) {
-	            for (int i = 0; i < p.size(); i++) {
-	                if (p.get(i) > 0) {
-
-	                    cost += costs.get(p.get(i)) == null ? 0 : costs.get(p.get(i));
-	                }
-
-	            }
-	        }
-	        return cost;
-	    }
-	    
-	    public void writeProds(String file, Individual i) throws Exception {
-	        BufferedWriter out = new BufferedWriter(new FileWriter(file));
-
-	        for (IVecInt v : i.getProds()) {
-	            for (int j = 0; j < v.size(); j++) {
-	                out.write(v.get(j) + " ");
-
-	            }
-	            out.newLine();
-	        }
-	        out.close();
-	    }
+	  	} // evaluate
 }

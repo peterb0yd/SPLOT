@@ -35,6 +35,7 @@ import jmetal.operators.mutation.MutationFactory;
 import jmetal.operators.selection.SelectionFactory;
 import jmetal.problems.ProblemFactory;
 import jmetal.problems.SPL;
+import jmetal.problems.DTLZ.DTLZ1;
 import jmetal.problems.ZDT.ZDT3;
 import jmetal.qualityIndicator.QualityIndicator;
 import jmetal.util.Configuration;
@@ -105,13 +106,13 @@ public class NSGAII_main {
       //problem = new OKA2("Real") ;
     } // else
     
-    problem = new SPL("Real", "CounterStrikeSimpleFeatureModel.dimacs", "CounterStrikeCosts.dimacs.cost");
+    problem = new SPL("solutions");
     algorithm = new NSGAII(problem);
     //algorithm = new ssNSGAII(problem);
 
     // Algorithm parameters
-    algorithm.setInputParameter("populationSize",100);
-    algorithm.setInputParameter("maxEvaluations",250);
+    algorithm.setInputParameter("populationSize",10);
+    algorithm.setInputParameter("maxEvaluations",25);
 
     // Mutation and Crossover for Real codification 
     parameters = new HashMap() ;
