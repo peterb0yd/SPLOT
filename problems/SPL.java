@@ -98,10 +98,8 @@ public class SPL extends Problem {
 		  boolean[] featuresUsed = new boolean[24];
 		  for (int i = 0; i < productLine.size(); i++) {
 			  for (int j = 0; j < productLine.get(i).length; j++) {
-				  System.out.println(productLine.get(i)[j]);
 				  if (productLine.get(i)[j] > 0) {
 					  featuresUsed[j] = true;
-					  System.out.println("true");
 				  }
 			  }
 		  }
@@ -131,7 +129,7 @@ public class SPL extends Problem {
 		   */
 		  int obj2 = productLine.size();		
 		  
-		  System.out.println("\nfeatures used: " + obj1 + "\t\tproducts tested: " + obj2);
+		  System.out.println("\nfeatures not used: " + obj1 + "\t\tproducts tested: " + obj2);
 		  
 		  solution.setObjective(0, obj1);
 		  solution.setObjective(1, obj2);
