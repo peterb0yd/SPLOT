@@ -30,6 +30,7 @@ import jmetal.core.Algorithm;
 import jmetal.core.Operator;
 import jmetal.core.Problem;
 import jmetal.core.SolutionSet;
+import jmetal.metaheuristics.splot.ProductSolution;
 import jmetal.operators.crossover.CrossoverFactory;
 import jmetal.operators.mutation.MutationFactory;
 import jmetal.operators.selection.SelectionFactory;
@@ -106,7 +107,7 @@ public class NSGAII_main {
       //problem = new OKA2("Real") ;
     } // else
     
-    problem = new SPL("solutions");
+    problem = new SPL("solutions", "CounterStrikeCosts.dimacs.cost");
     algorithm = new NSGAII(problem);
     //algorithm = new ssNSGAII(problem);
 
@@ -149,6 +150,8 @@ public class NSGAII_main {
     logger_.info("Objectives values have been writen to file FUN");
     population.printObjectivesToFile("FUN");
     population.printObjectives();
+    
+    ProductSolution.print(population.solutionsList_);
   
     if (indicators != null) {
       logger_.info("Quality indicators") ;

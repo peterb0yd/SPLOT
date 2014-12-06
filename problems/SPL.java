@@ -160,15 +160,14 @@ public class SPL extends Problem {
 		
 
 		System.out.println("features not used: " + obj1
-				+ "  |  products tested: " + obj2 + "  |  product cost: "
-				+ obj3 + "\n");
+				+ "  |  products tested: " + obj2
+				+ "  |  product cost: " + obj3 + "\n");
 
 		solution.setObjective(0, obj1);
 		solution.setObjective(1, obj2);
 		solution.setObjective(2, obj3);
 
 		productLine.clear();
-
 	} 
 
 	
