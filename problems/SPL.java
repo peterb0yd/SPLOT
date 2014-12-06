@@ -44,14 +44,15 @@ public class SPL extends Problem {
 
 	private int[][] products = new int[1000][24];
 	private List<int[]> productLine = new LinkedList<int[]>();
+	private HashMap<Integer, Integer> costs;
 	
 	private ListIterator productListIterator;
 
-	public SPL(String file_FM) {
+	public SPL(String file_FM, String file_cost) {
 		this.file_FM = file_FM;
-		// this.file_cost = file_cost;
-		numberOfObjectives_ = 2;
-		numberOfVariables_ = 100; // Change this for testing
+		this.file_cost = file_cost;
+		numberOfObjectives_ = 3;
+		numberOfVariables_ = 20; // Change this for testing
 		lowerLimit_ = new double[numberOfVariables_];
 		upperLimit_ = new double[numberOfVariables_];
 		for (int var = 0; var < numberOfVariables_; var++) {
@@ -97,19 +98,30 @@ public class SPL extends Problem {
 			}
 		}
 		
-		// Remove duplicate products in product line
 		try {
+			
+			// Remove duplicate products in product line
 			productLine = removeDuplicates(productLine);
+			
+			// Get costs for each feature
+			costs = loadCost(file_cost);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		// Find all features tested in product line
+		
+		
+		// Find all features tested in product line and assign costs
+		int productTotalCost = 0;
 		boolean[] featuresUsed = new boolean[24];
 		for (int i = 0; i < productLine.size(); i++) {
 			for (int j = 0; j < productLine.get(i).length; j++) {
 				if (productLine.get(i)[j] > 0) {
-					featuresUsed[j] = true;
+					featuresUsed[j] = true;			// assign used feature to true
+					if (costs.containsKey(j)) 		
+						productTotalCost += costs.get(j);
 				}
 			}
 		}
@@ -137,16 +149,28 @@ public class SPL extends Problem {
 		 * value as our second objective.
 		 */
 		int obj2 = productLine.size();
+		
+		/*
+		 * OBJECTIVE 3: We want to minimize the total cost of each product. 
+		 * This was calculated by finding all of the features tested and
+		 * summing the cost for each of them. We se this value as our 
+		 * third objective.
+		 */
+		int obj3 = productTotalCost;
+		
 
 		System.out.println("features not used: " + obj1
-				+ "\t\tproducts tested: " + obj2 + "\n");
+				+ "  |  products tested: " + obj2 + "  |  product cost: "
+				+ obj3 + "\n");
 
 		solution.setObjective(0, obj1);
 		solution.setObjective(1, obj2);
+		solution.setObjective(2, obj3);
 
 		productLine.clear();
 
-	} // evaluate
+	} 
+
 	
 	/** This function checks a list of products for duplicates
 	 * @param products - list of all products
@@ -181,4 +205,23 @@ public class SPL extends Problem {
         System.out.println(duplicates + word_duplicate + " found and removed");
         return products;
 	}
+	
+	
+	/** This function sets the costs to each product using the cost file
+	 * @param filename
+	 * @return
+	 * @throws Exception
+	 */
+    public HashMap<Integer, Integer> loadCost(String filename) throws Exception {
+        BufferedReader in = new BufferedReader(new FileReader(filename));
+        HashMap<Integer, Integer> costs = new HashMap<Integer, Integer>();
+        String line;
+        while ((line = in.readLine()) != null) {
+            StringTokenizer st = new StringTokenizer(line, ":");
+            costs.put(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+        }
+        in.close();
+        return costs;
+
+    }
 }
