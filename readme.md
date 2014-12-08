@@ -13,7 +13,7 @@
 <h4>ProductSolution.java</h4>
 - Prints solution(s) and their calculated objectives to specific file depending on algorithm
 
-<h4>NSGAII_main, IBEA_main, RandomSearch_main/h4>
+<h4>NSGAII main,  IBEA main, RandomSearch main/h4>
 - Algorithm classes
 - Slightly modified to print out solutions
 - Calls "ProductSolution.print()" function at line 154
