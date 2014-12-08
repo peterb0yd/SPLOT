@@ -11,8 +11,9 @@
 - Sets objectives
 
 <h4>ProductSolution.java</h4>
-- Prints optimal solution(s) to "ProductSolutionList" file
+- Prints solution(s) and their calculated objectives to specific file depending on algorithm
 
-<h4>NSGAII_main</h4>
+<h4>NSGAII_main.java, IBEA_main.java, RandomSearch_main.java</h4>
+- Algorithm classes
 - Slightly modified to print out solutions
 - Calls "ProductSolution.print()" function at line 154
